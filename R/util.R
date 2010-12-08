@@ -41,7 +41,7 @@
 #           scantwoperm2scanoneperm, subset.map, [.map, [.cross,
 #           findDupMarkers, convert2riself, convert2risib,
 #           switchAlleles, nqrank, cleanGeno, typingGap,
-#           calcPermPval
+#           calcPermPval, getmap
 #
 ######################################################################
 
@@ -1286,7 +1286,18 @@ function(x, chr, ind, ...)
             attr(x$geno[[i]]$prob, names(temp)[k]) <- temp[[k]]
         }
       }
-        
+	##added to accomodate markprob
+        if ("markprob" %in% names(x$geno[[i]])) {
+			temp <- attributes(x$geno[[i]]$markprob)
+			x$geno[[i]]$markprob <- x$geno[[i]]$markprob[ind, , ,
+			drop = FALSE]
+			for (k in seq(along = temp)) {
+				if (names(temp)[k] != "dim" && names(temp)[k] !=
+					"dimnames")
+				attr(x$geno[[i]]$markprob, names(temp)[k]) <- temp[[k]]
+			}
+        }
+		
       if("errorlod" %in% names(x$geno[[i]])) {
         temp <- attributes(x$geno[[i]]$prob) # all attributes but dim and dimnames
         x$geno[[i]]$errorlod <- x$geno[[i]]$errorlod[ind,,drop=FALSE]
@@ -4050,4 +4061,13 @@ function(peaks, perms)
   matrix(pval, ncol=ncol.peaks, nrow=nrow.peaks)
 }
 
+## getmap is a function to get map of position names and cM distances for each chromosome
+## Code is from the R/qtl function scantwo.
+## The purpose is to get positions for output.
+getmap <- function(i, cross){
+	  map <- create.map(cross$geno[[i]]$map,
+	  attr(cross$geno[[i]]$prob,"step"),
+	  attr(cross$geno[[i]]$prob,"off.end"))
+}
+	  
 # end of util.R
